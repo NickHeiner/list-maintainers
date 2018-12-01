@@ -1,0 +1,36 @@
+{
+  "name": "list-maintainers",
+  "version": "1.0.0",
+  "description": "A tool to list maintainers contributing to a node_modules tree",
+  "main": "index.js",
+  "repository": "git@github.com:NickHeiner/list-maintainers.git",
+  "author": "Nick Heiner <nth23@cornell.edu>",
+  "license": "MIT",
+  "scripts": {
+    "test": "ava",
+    "lint:fix": "eslint --cache --fix index.js"
+  },
+  "dependencies": {
+    "bunyan": "^1.8.12",
+    "bunyan-format": "^0.2.1",
+    "lodash": "^4.17.11",
+    "npm": "^6.4.1",
+    "promise-parallel-throttle": "^3.2.0",
+    "yarn-lockfile": "^1.1.1"
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "ecmaVersion": 2018
+    },
+    "env": {
+      "es6": true,
+      "node": true
+    },
+    "extends": "nth"
+  },
+  "devDependencies": {
+    "ava": "^0.25.0",
+    "eslint": "^4.19.1",
+    "eslint-config-nth": "^1.1.2"
+  }
+}
