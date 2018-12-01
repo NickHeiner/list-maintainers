@@ -6,6 +6,9 @@
   "repository": "git@github.com:NickHeiner/list-maintainers.git",
   "author": "Nick Heiner <nth23@cornell.edu>",
   "license": "MIT",
+  "bin": {
+    "list-maintainers": "./index.js"
+  },
   "scripts": {
     "test": "ava",
     "lint:fix": "eslint --cache --fix index.js"
