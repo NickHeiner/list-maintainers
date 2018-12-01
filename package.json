@@ -14,6 +14,7 @@
     "bunyan": "^1.8.12",
     "bunyan-format": "^0.2.1",
     "lodash": "^4.17.11",
+    "progress": "^2.0.1",
     "promise-parallel-throttle": "^3.2.0",
     "table": "^5.1.1",
     "yarn": "^1.12.3",

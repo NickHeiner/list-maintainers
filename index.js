@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 
-/* eslint-disable camelcase */
+/* eslint-disable camelcase, no-console, prefer-template */
 
 const commander = require('commander');
 const packageJson = require('./package');
@@ -12,6 +12,7 @@ const promiseParallelThrottle = require('promise-parallel-throttle');
 const child_process = require('child_process');
 const chalk = require('chalk');
 const {table} = require('table');
+const Progress = require('progress');
 
 const path = require('path');
 const yarnPackage = require('yarn/package');
@@ -70,16 +71,25 @@ const getPackages = ({yarnLockfile}) => {
   }
 };
 
-const getMaintainers = packages => promiseParallelThrottle.all(
-  _.take(packages, program.sample).map(pkgInfo => async () => {
-    logger.debug({pkgInfo});
-    const maintainers = await getMaintainersForPackage(pkgInfo);
-    return {
-      ...pkgInfo,
-      maintainers
-    };
-  })
-);
+const getMaintainers = packages => {
+  const packagesToQueryFor = _.take(packages, program.sample || Infinity);
+  const progressBar = new Progress(
+    `Querying for package info for ${chalk.bold(packagesToQueryFor.length)} packages. ` +
+    '[:bar] (:percent complete; :elapsed seconds elapsed)', 
+    {total: packagesToQueryFor.length}
+  );
+  return promiseParallelThrottle.all(
+    packagesToQueryFor.map(pkgInfo => async () => {
+      logger.debug({pkgInfo});
+      const maintainers = await getMaintainersForPackage(pkgInfo);
+      progressBar.tick();
+      return {
+        ...pkgInfo,
+        maintainers
+      };
+    })
+  );
+};
 
 const getMaintainersByPackage = maintainerPkgInfo => {
   const maintainersByPackage = {};
@@ -95,9 +105,9 @@ const getMaintainersByPackage = maintainerPkgInfo => {
 };
 
 const printSummary = (maintainersByPackage, maintainerPackageInfo) => {
-  /* eslint-disable no-console */
   console.log(
-    `This lockfile installs ${chalk.bold(_.size(maintainerPackageInfo))} packages ` +
+    chalk.bold(path.resolve(program.yarnLockfile)) +
+    ` installs ${chalk.bold(_.size(maintainerPackageInfo))} packages ` +
     `with ${chalk.bold(_.size(maintainersByPackage))} maintainers.`);
     
   const maintainersSortedByFewestPackages = _(maintainersByPackage)
@@ -106,15 +116,14 @@ const printSummary = (maintainersByPackage, maintainerPackageInfo) => {
     .map(({name, email, packages}) => [
       name, 
       email, 
-      packages.map(({name, version}) => `${name}@${version}`).join(', ')
+      packages.length
     ])
     .value();
 
   console.log(table([
-    ['Name', 'Email', 'Packages'].map(str => chalk.bold(str)),
+    ['Name', 'Email', 'Package Count'].map(str => chalk.cyan.bold(str)),
     ...maintainersSortedByFewestPackages
   ]));
-  /* eslint-enable no-console */
 };
 
 (async () => {
