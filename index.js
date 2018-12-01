@@ -20,10 +20,15 @@ const yarnBinPath = path.resolve(path.dirname(require.resolve('yarn/package')), 
 
 logger.debug({yarnBinPath});
 
+const defaultParallelCount = 5;
+
 const program = commander
   .version(packageJson.version)
   .option('-y, --yarn-lockfile <path/to/yarn.lock>', 'Parse the Yarn lockfile.')
   .option('-s, --sample <sample count : int>', 'For debugging purposes: only run with the first n packages.')
+  .option('-p, --parallel <parallel count : int>', 
+    `The throttle limit of how many parallel npm requests can be active at once. ` +
+    `Defaults to '${defaultParallelCount}'.`)
   .parse(process.argv);
 
 if (!program.yarnLockfile) {
@@ -87,7 +92,11 @@ const getMaintainers = packages => {
         ...pkgInfo,
         maintainers
       };
-    })
+    }),
+    {
+      maxInProgress: program.parallel || defaultParallelCount, 
+      failFast: false
+    }
   );
 };
 
