@@ -14,13 +14,16 @@
     "bunyan": "^1.8.12",
     "bunyan-format": "^0.2.1",
     "lodash": "^4.17.11",
-    "npm": "^6.4.1",
     "promise-parallel-throttle": "^3.2.0",
+    "yarn": "^1.12.3",
     "yarn-lockfile": "^1.1.1"
   },
   "eslintConfig": {
     "parserOptions": {
       "ecmaVersion": 2018
+    },
+    "rules": {
+      "no-undef": "error"
     },
     "env": {
       "es6": true,

@@ -12,12 +12,15 @@ const promiseParallelThrottle = require('promise-parallel-throttle');
 const child_process = require('child_process');
 
 const path = require('path');
-const npmPackage = require('npm/package');
-const npmBinPath = path.resolve(path.dirname(require.resolve('npm/package')), npmPackage.bin.npm);
+const yarnPackage = require('yarn/package');
+const yarnBinPath = path.resolve(path.dirname(require.resolve('yarn/package')), yarnPackage.bin.yarn);
+
+logger.debug({yarnBinPath});
 
 const program = commander
   .version(packageJson.version)
   .option('-y, --yarn-lockfile <path/to/yarn.lock>', 'Parse the Yarn lockfile.')
+  .option('-s, --sample <sample count : int>', 'For debugging purposes: only run with the first n packages.')
   .parse(process.argv);
 
 if (!program.yarnLockfile) {
@@ -30,19 +33,20 @@ const parseJson = str => {
   try {
     return JSON.parse(str);
   } catch (error) {
-    logger.error({error, jsonStr: str}, "JSON parse failed. Did npm return a result that wasn't json?");
+    logger.error({error, jsonStr: str}, "JSON parse failed. Did yarn return a result that wasn't json?");
     throw error;
   }
 };
 
 const getMaintainersForPackage = async ({name: packageName, version: packageVersion}) => {
   const stdout = await new Promise((resolve, reject) => {
-    const command = `${npmBinPath} info ${packageName}@${packageVersion} --json`;
+    const command = `${yarnBinPath} info ${packageName}@${packageVersion} maintainers --json`;
+    logger.debug({command}, 'Executing info command');
     child_process.exec(command, (err, stdout, stderr) => {
       if (err) {
         logger.error(
           {stderr, stdout, command}, 
-          'npm command failed. Do you have an internet connection? Is the npm registry down?'
+          'A yarn command failed. Do you have an internet connection? Is the registry down?'
         );
         return reject(err);
       }
@@ -50,7 +54,7 @@ const getMaintainersForPackage = async ({name: packageName, version: packageVers
       resolve(stdout);
     });
   });
-  return parseJson(stdout).maintainers;
+  return parseJson(stdout).data;
 };
 
 const getPackages = ({yarnLockfile}) => {
@@ -59,13 +63,14 @@ const getPackages = ({yarnLockfile}) => {
     const yarnLockFileParsed = parseYarnLockfile.parse(yarnLockfileContents);
     return _.map(yarnLockFileParsed.object, (({version}, spec) => ({
       version,
-      name: spec.split('@')[0]
+      name: spec.slice(0, spec.lastIndexOf('@'))
     })));
   }
 };
 
-const getMaintainers = async packages => promiseParallelThrottle.all(
+const getMaintainers = packages => promiseParallelThrottle.all(
   packages.map(pkgInfo => async () => {
+    logger.debug({pkgInfo});
     const maintainers = await getMaintainersForPackage(pkgInfo);
     return {
       ...pkgInfo,
@@ -74,7 +79,24 @@ const getMaintainers = async packages => promiseParallelThrottle.all(
   })
 );
 
+const getMaintainersByPackage = maintainerPkgInfo => {
+  const maintainersByPackage = {};
+  maintainerPkgInfo.forEach(({name: packageName, version, maintainers}) => {
+    maintainers.forEach(({name: maintainerName, email}) => {
+      if (!maintainersByPackage[email]) {
+        maintainersByPackage[email] = {name: maintainerName, email, packages: []};
+      }
+      maintainersByPackage[email].packages.push({name: packageName, version});
+    });
+  });
+  return maintainersByPackage;
+};
+
 (async () => {
   const packages = getPackages(_.pick(program, 'yarnLockfile'));
-  logger.debug({packages}, 'Found packages');
+  logger.debug({packages});
+  const maintainers = await getMaintainers(packages);
+  logger.debug({maintainers});
+  const maintainersByPackage = getMaintainersByPackage(maintainers);
+  logger.debug({maintainersByPackage});
 })();
