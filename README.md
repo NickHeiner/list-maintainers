@@ -22,3 +22,5 @@ whereas `npm`'s is:
 ```
 
 If you request `name@version`, the `maintainers` field is specific to that version. There could be some interesting questions about how to handle maintainers who have left a project but their code remains. They would not show up in the `maintainers` entry.
+
+`yarn owner list` also exists. But I think it's the same as `info maintainers`, and it's less ergonomic to use because it streams results instead of returning them all at once.

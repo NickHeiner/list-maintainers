@@ -10,6 +10,8 @@ const fs = require('fs');
 const parseYarnLockfile = require('yarn-lockfile');
 const promiseParallelThrottle = require('promise-parallel-throttle');
 const child_process = require('child_process');
+const chalk = require('chalk');
+const {table} = require('table');
 
 const path = require('path');
 const yarnPackage = require('yarn/package');
@@ -69,7 +71,7 @@ const getPackages = ({yarnLockfile}) => {
 };
 
 const getMaintainers = packages => promiseParallelThrottle.all(
-  packages.map(pkgInfo => async () => {
+  _.take(packages, program.sample).map(pkgInfo => async () => {
     logger.debug({pkgInfo});
     const maintainers = await getMaintainersForPackage(pkgInfo);
     return {
@@ -92,11 +94,35 @@ const getMaintainersByPackage = maintainerPkgInfo => {
   return maintainersByPackage;
 };
 
+const printSummary = (maintainersByPackage, maintainerPackageInfo) => {
+  /* eslint-disable no-console */
+  console.log(
+    `This lockfile installs ${chalk.bold(_.size(maintainerPackageInfo))} packages ` +
+    `with ${chalk.bold(_.size(maintainersByPackage))} maintainers.`);
+    
+  const maintainersSortedByFewestPackages = _(maintainersByPackage)
+    .values()
+    .sortBy(({packages}) => packages.length)
+    .map(({name, email, packages}) => [
+      name, 
+      email, 
+      packages.map(({name, version}) => `${name}@${version}`).join(', ')
+    ])
+    .value();
+
+  console.log(table([
+    ['Name', 'Email', 'Packages'].map(str => chalk.bold(str)),
+    ...maintainersSortedByFewestPackages
+  ]));
+  /* eslint-enable no-console */
+};
+
 (async () => {
   const packages = getPackages(_.pick(program, 'yarnLockfile'));
   logger.debug({packages});
-  const maintainers = await getMaintainers(packages);
-  logger.debug({maintainers});
-  const maintainersByPackage = getMaintainersByPackage(maintainers);
+  const maintainerPackageInfo = await getMaintainers(packages);
+  logger.debug({maintainerPackageInfo});
+  const maintainersByPackage = getMaintainersByPackage(maintainerPackageInfo);
   logger.debug({maintainersByPackage});
+  printSummary(maintainersByPackage, maintainerPackageInfo);
 })();
