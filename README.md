@@ -1,5 +1,5 @@
 # `list-maintainers`: See who's behind your `node_modules`
-Curious who you're letting run code on machine when you run `yarn install`? Use this tool to see a list of all maintainers of all your packages.
+Curious who you're letting run code on your machine when you run `yarn install`? Use this tool to see a list of all maintainers of all your packages.
 
 ![screenshot of the tool in action](./demo.png)
 
