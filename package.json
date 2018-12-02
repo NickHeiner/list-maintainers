@@ -1,6 +1,6 @@
 {
   "name": "list-maintainers",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A tool to list maintainers contributing to a node_modules tree",
   "main": "index.js",
   "repository": "git@github.com:NickHeiner/list-maintainers.git",
@@ -16,6 +16,7 @@
   "dependencies": {
     "bunyan": "^1.8.12",
     "bunyan-format": "^0.2.1",
+    "commander": "^2.19.0",
     "lodash": "^4.17.11",
     "progress": "^2.0.1",
     "promise-parallel-throttle": "^3.2.0",
