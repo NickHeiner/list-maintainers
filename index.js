@@ -27,7 +27,7 @@ const program = commander
   .option('-y, --yarn-lockfile <path/to/yarn.lock>', 'Parse the Yarn lockfile.')
   .option('-s, --sample <sample count : int>', 'For debugging purposes: only run with the first n packages.')
   .option('-p, --parallel <parallel count : int>', 
-    `The throttle limit of how many parallel npm requests can be active at once. ` +
+    'The throttle limit of how many parallel npm requests can be active at once. ' +
     `Defaults to '${defaultParallelCount}'.`)
   .parse(process.argv);
 
