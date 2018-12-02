@@ -11,6 +11,9 @@ yarn global add list-maintainers
 
 # Or
 npm install -g list-maintainers
+
+# Or, install and use all in one go:
+npx list-maintainers --yarn-lockfile path/to/lockfile
 ```
 
 The supported version of Node is the one listed in [.nvmrc](./.nvmrc).
