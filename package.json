@@ -1,6 +1,6 @@
 {
   "name": "list-maintainers",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A tool to list maintainers contributing to a node_modules tree",
   "main": "index.js",
   "repository": "git@github.com:NickHeiner/list-maintainers.git",

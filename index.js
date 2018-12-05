@@ -86,7 +86,9 @@ const getMaintainers = packages => {
   return promiseParallelThrottle.all(
     packagesToQueryFor.map(pkgInfo => async () => {
       logger.debug({pkgInfo});
-      const maintainers = await getMaintainersForPackage(pkgInfo);
+      // Artifactory may return `undefined` for the maintainers field,
+      // so we default to [].
+      const maintainers = await getMaintainersForPackage(pkgInfo) || [];
       progressBar.tick();
       return {
         ...pkgInfo,
